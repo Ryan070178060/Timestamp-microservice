@@ -19,26 +19,27 @@ app.get("/", function (req, res) {
 });
 
 
-// Middleware for parsing JSON bodies
-app.use(express.json());
+// Route to handle date requests
+app.get('/api/:date?', (req, res) => {
+  const { date } = req.params;
+  let inputDate;
 
-// Define routes
-// Handle empty date parameter
-app.get('/api', (req, res) => {
-    const date = new Date();
-    res.json({ unix: date.getTime(), utc: date.toUTCString() });
+  if (!date) {
+    inputDate = new Date();
+  } else {
+    inputDate = /^\d+$/.test(date) ? new Date(parseInt(date)) : new Date(date);
+  }
+
+  if (inputDate.toString() === 'Invalid Date') {
+    return res.json({ error: 'Invalid Date' });
+  }
+
+  res.json({
+    unix: inputDate.getTime(),
+    utc: inputDate.toUTCString()
+  });
 });
 
-// Handle specific date
-app.get('/api/:date', (req, res) => {
-    const { date } = req.params;
-    const parsedDate = new Date(date);
-    if (parsedDate.toString() === 'Invalid Date') {
-        res.json({ error: 'Invalid Date' });
-    } else {
-        res.json({ unix: parsedDate.getTime(), utc: parsedDate.toUTCString() });
-    }
-});
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
